@@ -52,7 +52,14 @@ Create a bar plot of the number of ballot received by ballot send date.
 See `images/visualizaiton_1.png`.
 
 ```{r visualizaiton_1}
-
+absentee %>%
+  group_by(ballot_send_dt) %>%
+  count %>%
+  arrange(n) %>%
+  ggplot(aes(ballot_send_dt, n)) +
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(title = "Absentee Votes by Ballot Send Date", x = "Ballot Send Date", y = "Absentee Ballots")
 ```
 
 Create a bar plot showing the number of ballots received on 09/04/2020 by 
@@ -62,7 +69,15 @@ ballots received on 09/04/2020.
 See `images/visualizaiton_2.png`.
 
 ```{r visualizaiton_2}
-
+absentee %>%
+  filter(ballot_send_dt == "09/04/2020") %>%
+  count(county_desc) %>%
+  arrange(desc(n)) %>%
+  head(20) %>%
+  ggplot(aes(reorder(county_desc, n), n)) + 
+  geom_bar(stat = "identity") +
+  coord_flip() +
+  labs(title = "Absentee Votes on 9/4/20 by County", x = "County", y = "Absentee Ballots")
 ```
 
 Create a histogram based on the proportion of accepted ballots on a per
@@ -71,6 +86,34 @@ county basis.
 See `images/visualizaiton_3.png`.
 
 ```{r visualizaiton_3}
+absentee %>%
+  group_by(county_desc) %>%
+  summarize(n = n(), prop = length(ballot_rtn_status[ballot_rtn_status == "ACCEPTED"])/n)
+  arrange(desc(prop)) %>%
+  ggplot(aes(prop)) +
+  geom_histogram()
+```
+  
+```{r}
+absentee %>%
+  group_by(county_desc) %>%
+  count(ballot_rtn_status) %>%
+  mutate(prop = n/sum(n)) %>%
+  ungroup() %>%
+  filter(ballot_rtn_status == "ACCEPTED") %>%
+  ggplot(aes(x = prop)) +
+  geom_histogram(binwidth = 0.02)
+
+absentee %>%
+  group_by(county_desc) %>%
+  count(ballot_rtn_status) %>%
+  mutate(proportion = n / sum(n)) %>%
+  ungroup() %>%
+  filter(ballot_rtn_status == "ACCEPTED") %>%
+  ggplot(aes(x = proportion)) +
+  geom_histogram(binwidth = 0.02) +
+  labs(x = "Proportion of ballots accepted", y = "Count") +
+  theme_minimal(base_size = 16)
 
 ```
 
@@ -80,7 +123,44 @@ from the parties "DEM", "REP", "UNA" broken down by race.
 See `images/visualizaiton_4.png`.
 
 ```{r visualizaiton_4}
+ggplot(absentee, aes(x = age)) +
+  geom_boxplot(aes(color = race)) +
+  facet_wrap(~ voter_party_code)
+```
+Extra visualizations: 
 
+Largest Democratic counties in NC: 
+
+```{r}
+absentee %>%
+  filter(voter_party_code == "DEM") %>%
+  group_by(county_desc) %>%
+  count(voter_party_code) %>%
+  arrange(desc(n)) %>%
+  head(20) %>%
+  ggplot(aes(reorder(county_desc, n), n)) +
+  geom_bar(stat = "identity") +
+  coord_flip()
+```
+Top democratic counties proportion of accepted ballots: 
+
+Almost 100% of absentee ballots have been accepted for top Democratic counties. 
+
+```{r}
+absentee %>%
+  filter(voter_party_code == "DEM") %>%
+  group_by(county_desc) %>%
+  count(voter_party_code) %>% 
+  arrange(desc(n)) 
 ```
 
+```{r}
+absentee %>%
+  filter(county_desc %in% c("MECKLENBURG", "WAKE", "DURHAM", "CUMBERLAND", "ORANGE", "HENDERSON", "PITT", "ALAMANCE", "NEW HANOVER", "BRUNSWICK")) %>%
+  group_by(county_desc) %>%
+  count(ballot_rtn_status) %>%
+  mutate(prop = n/sum(n), ballot_rtn_status) %>%
+  ungroup() %>%
+  filter(ballot_rtn_status == "ACCEPTED")
+```
 
