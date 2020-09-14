@@ -144,7 +144,7 @@ absentee %>%
 ```
 Top democratic counties proportion of accepted ballots: 
 
-Almost 100% of absentee ballots have been accepted for top Democratic counties. 
+Almost 100% of absentee ballots have been accepted for top Democratic counties. However, New Hanover has one of the highest rates of ballot acceptance at 83%. 
 
 ```{r}
 absentee %>%
@@ -162,5 +162,19 @@ absentee %>%
   mutate(prop = n/sum(n), ballot_rtn_status) %>%
   ungroup() %>%
   filter(ballot_rtn_status == "ACCEPTED")
+```
+
+Which counties have the highest rates of ballots not being accepted? 
+
+New Hanover has a very high rate of not being accepted. 
+
+```{r}
+absentee %>%
+  group_by(county_desc) %>%
+  count(ballot_rtn_status) %>%
+  mutate(prop = n/sum(n)) %>%
+  ungroup() %>%
+  filter(ballot_rtn_status != "ACCEPTED") %>%
+  arrange(desc(prop))
 ```
 
